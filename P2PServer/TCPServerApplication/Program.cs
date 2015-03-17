@@ -79,7 +79,7 @@ namespace TCPServerApplication
 
             if(fromClient == "image")
             {
-                
+                Console.WriteLine("Client said: " + fromClient);
                 fromServer = fromClient.ToUpper(); // converting received message to upper case
                 Console.WriteLine("Server said: " + fromServer);
                 socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
@@ -87,9 +87,19 @@ namespace TCPServerApplication
                 receiveBuffer = new byte[4];
                 receiveBtyeCount = socket.Receive(receiveBuffer); //Receiving the size of the image
                 int size = BitConverter.ToInt32(receiveBuffer, 0);
-            
+
+                Console.WriteLine("Client said: File size " + fromClient);
+                fromServer = ("File size " + fromClient).ToUpper(); // converting received message to upper case
+                Console.WriteLine("Server said: " + fromServer);
+                socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
+                
                 receiveBuffer = new byte[size];
                 receiveBtyeCount = socket.Receive(receiveBuffer);// Receive the image
+
+                Console.WriteLine("Client said: Image file");
+                fromServer = "File Received"; // Send back that we got the file
+                Console.WriteLine("Server said: " + fromServer);
+                socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
 
                 MemoryStream ms = new MemoryStream(receiveBuffer);
                 Bitmap img = new Bitmap(ms);
