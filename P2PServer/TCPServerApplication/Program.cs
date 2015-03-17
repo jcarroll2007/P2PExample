@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,44 +14,31 @@ namespace TCPServerApplication
     {
         public static void Main(string[] args)
         {
-            String routerName = "172.16.20.21"; // ServerRouter host name
-            int portNum = 5555; // port number
-            String address ="172.16.20.121"; // destination IP (Client)
-            String imageLocation = "C:\\Users\\Cprice\\Desktop\\image.jpg";
+            const String ROUTER_NAME = "172.16.20.21"; // ServerRouter host name
+            const int PORT_NUM = 5555; // port number
+            const String ADDRESS ="172.16.20.121"; // destination IP (Client)
+            const String IMAGE_LOCATION = "C:\\Users\\Cprice\\Desktop\\image.jpg";
             
-            // Variables for setting up connection and communication
-            Socket Socket = null; // socket to connect with ServerRouter
-            IPAddress addr = InetAddress.getLocalHost();
-            String host = addr.getHostAddress(); // Server machine's IP		
+            // Varibles for setting up connection and communication
+            Socket socket = null; // socket to connect with ServerRouter
+			System.Text.Decoder decoder = System.Text.Encoding.UTF8.GetDecoder();
 
-            PrintWriter out = null; // for writing to ServerRouter
-            BufferedReader in = null; // for reading form ServerRouter
-            DataInputStream dis = null;
-            DataOutputStream os = null;
-            	
-            FileOutputStream fout = new FileOutputStream(imageLocation);
-			
             // Tries to connect to the ServerRouter
             try 
             {
-                Socket = new Socket(routerName, portNum);
-                Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                Socket.Connect(routerName, portNum);
-
-
-                out = new PrintWriter(Socket.getOutputStream(), true);
-                in = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
-                dis = new DataInputStream(Socket.getInputStream());
-                os = new DataOutputStream(Socket.getOutputStream());
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                IPAddress ipAddress = IPAddress.Parse(ROUTER_NAME);
+                IPEndPoint remoteEP = new IPEndPoint(ipAddress, PORT_NUM);
+                socket.Connect(remoteEP);
             } 
-            catch (UnknownHostException e) 
+            catch (SocketException e) 
             {
-               System.err.println("Don't know about router: " + routerName);
-               System.exit(1);
+               Console.WriteLine("Could not connect to router: " + ROUTER_NAME);
+               Environment.Exit(1);
             } 
             catch (IOException e) {
-               System.err.println("Couldn't get I/O for the connection to: " + routerName);
-               System.exit(1);
+               Console.WriteLine("Couldn't get I/O for the connection to: " + ROUTER_NAME);
+               Environment.Exit(1);
             }
 				
             // Variables for message passing			
@@ -59,60 +47,84 @@ namespace TCPServerApplication
             
 			
             // Communication process (initial sends/receives)
-            out.println(address);// initial send (IP of the destination Client)
-            fromClient = in.readLine();// initial receive from router (verification of connection)
-            System.out.println("ServerRouter: " + fromClient);
-            
-            fromClient = in.readLine();// initial receive from client 
-            System.out.println("Client said: " + fromClient);
+            socket.Send(System.Text.Encoding.ASCII.GetBytes(ADDRESS));// initial send (IP of the destination Client)
 
-            fromServer = fromClient.toUpperCase(); // converting received message to upper case
-            System.out.println("Server said: " + fromServer);
-            out.println(fromServer); // sending the converted message back to the Client via ServerRouter
+            byte[] receiveBuffer = new byte[1024];
+            int receiveBtyeCount = socket.Receive(receiveBuffer);// initial receive from router (verification of connection)
+            char[] chars = new char[receiveBtyeCount];
+            int charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
+            fromClient = new String(chars);
+
+            Console.Write("ServerRouter: " + fromClient);
             
-            if((fromClient = in.readLine()).equals("image"))
+
+            receiveBuffer = new byte[1024];
+            receiveBtyeCount = socket.Receive(receiveBuffer);// initial receive from router (verification of connection)
+            chars = new char[receiveBtyeCount];
+            charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
+            fromClient = new String(chars);
+
+            Console.Write("Client said: " + fromClient);
+
+            fromServer = fromClient.ToUpper(); // converting received message to upper case
+
+            Console.Write("Server said: " + fromServer);
+            socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
+            
+            receiveBuffer = new byte[1024];
+            receiveBtyeCount = socket.Receive(receiveBuffer);// Rec from client for file type
+            chars = new char[receiveBtyeCount];
+            charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
+            fromClient = new String(chars);
+
+            if(fromClient == "image")
             {
-                fromServer = fromClient.toUpperCase(); // converting received message to upper case
-                System.out.println("Server said: " + fromServer);
-                out.println(fromServer); // sending the converted message back to the Client via ServerRouter
+                
+                fromServer = fromClient.ToUpper(); // converting received message to upper case
+                Console.Write("Server said: " + fromServer);
+                socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
+
+                receiveBuffer = new byte[4];
+                receiveBtyeCount = socket.Receive(receiveBuffer); //Receiving the size of the image
+                int size = BitConverter.ToInt32(receiveBuffer, 0);
             
-                int i;
-                // Communication while loop
-                while ((i = dis.read()) > -1) 
-                {
-                    System.out.println("Client said: " + i);
-                     fout.write(i);
-                     System.out.println("Server said: " + i);
-                     os.write(i);
-                }
+                receiveBuffer = new byte[size];
+                receiveBtyeCount = socket.Receive(receiveBuffer);// Receive the image
+
+                MemoryStream ms = new MemoryStream(receiveBuffer);
+                Bitmap img = new Bitmap(ms);
+                img.Save(Directory.GetCurrentDirectory() + "\\ReceivedImage.png");
             }
             else
             {
-                fromServer = fromClient.toUpperCase(); // converting received message to upper case
-                System.out.println("Server said: " + fromServer);
-                out.println(fromServer); // sending the converted message back to the Client via ServerRouter
-            
+                fromServer = fromClient.ToUpper(); // converting received message to upper case
+                Console.Write("Server said: " + fromServer);
+               socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
+
                 // Communication while loop
-                while ((fromClient = in.readLine()) != null) 
+                while (true) 
                 {
-                    System.out.println("Client said: " + fromClient);
-                    if (fromClient.equals("Bye.")) // exit statement
+                    receiveBuffer = new byte[1024];
+                    receiveBtyeCount = socket.Receive(receiveBuffer);// Receive from client a line of text
+                    chars = new char[receiveBtyeCount];
+                    charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
+                    fromClient = new String(chars);
+
+                    Console.Write("Client said: " + fromClient);
+                    if (fromClient == "Bye.") // exit statement
                         break;
 
-                    fromServer = fromClient.toUpperCase(); // converting received message to upper case
-                    System.out.println("Server said: " + fromServer);
-                    out.println(fromServer); // sending the converted message back to the Client via ServerRouter
+                    fromServer = fromClient.ToUpper(); // converting received message to upper case
+                    Console.Write("Server said: " + fromServer);
+                    socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
                 }
             }
             
             
             
 			
-	// closing connections
-        out.close();
-        in.close();
-        dis.close();
-        Socket.close();
+	    // closing connections
+        socket.Close();
         }
     }
 }
