@@ -55,7 +55,7 @@ namespace TCPServerApplication
             int charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
             fromClient = new String(chars);
 
-            Console.Write("ServerRouter: " + fromClient);
+            Console.WriteLine("ServerRouter: " + fromClient);
             
 
             receiveBuffer = new byte[1024];
@@ -64,11 +64,11 @@ namespace TCPServerApplication
             charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
             fromClient = new String(chars);
 
-            Console.Write("Client said: " + fromClient);
+            Console.WriteLine("Client said: " + fromClient);
 
             fromServer = fromClient.ToUpper(); // converting received message to upper case
 
-            Console.Write("Server said: " + fromServer);
+            Console.WriteLine("Server said: " + fromServer);
             socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
             
             receiveBuffer = new byte[1024];
@@ -81,7 +81,7 @@ namespace TCPServerApplication
             {
                 
                 fromServer = fromClient.ToUpper(); // converting received message to upper case
-                Console.Write("Server said: " + fromServer);
+                Console.WriteLine("Server said: " + fromServer);
                 socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
 
                 receiveBuffer = new byte[4];
@@ -98,7 +98,7 @@ namespace TCPServerApplication
             else
             {
                 fromServer = fromClient.ToUpper(); // converting received message to upper case
-                Console.Write("Server said: " + fromServer);
+                Console.WriteLine("Server said: " + fromServer);
                socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
 
                 // Communication while loop
@@ -110,12 +110,12 @@ namespace TCPServerApplication
                     charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
                     fromClient = new String(chars);
 
-                    Console.Write("Client said: " + fromClient);
+                    Console.WriteLine("Client said: " + fromClient);
                     if (fromClient == "Bye.") // exit statement
                         break;
 
                     fromServer = fromClient.ToUpper(); // converting received message to upper case
-                    Console.Write("Server said: " + fromServer);
+                    Console.WriteLine("Server said: " + fromServer);
                     socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
                 }
             }
