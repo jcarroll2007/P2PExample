@@ -22,7 +22,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="1.123.456.4: Hey! How's it going?"></TextBlock>
+            <TextBlock Text="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

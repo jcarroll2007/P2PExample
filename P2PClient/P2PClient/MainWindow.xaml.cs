@@ -20,9 +20,12 @@ namespace P2PClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        ClientViewModel viewModel = new ClientViewModel();
         public MainWindow()
         {
             InitializeComponent();
+
+            this.DataContext = viewModel;
         }
     }
 }
