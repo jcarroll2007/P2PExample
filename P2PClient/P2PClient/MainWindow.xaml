@@ -14,7 +14,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Label Content="Available Users" HorizontalAlignment="Center"/>
-            <ListBox Grid.Row="1" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding Clients, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedClient}"/>
         </Grid>
 
         <Grid Grid.Column="2">
@@ -28,8 +28,8 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox/>
-                <Button Grid.Column="1" Content="Send" Width="80" />
+                <TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}"/>
+                <Button Grid.Column="1" Content="Send" Width="80" Command="{Binding SendCommand}"/>
             </Grid>
         </Grid>
     </Grid>

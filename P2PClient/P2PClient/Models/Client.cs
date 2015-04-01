@@ -12,6 +12,11 @@ namespace P2PClient.Models
 
         public Client() {}
 
+        public override string ToString()
+        {
+            return IPAddress;
+        }
+
         public Client(String ipAddress)
         {
             this.ipAddress = ipAddress;
