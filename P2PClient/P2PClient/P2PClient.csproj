@@ -36,6 +36,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -56,6 +57,7 @@
     <Compile Include="ClientViewModel.cs" />
     <Compile Include="Helpers\CommandBase.cs" />
     <Compile Include="Models\Client.cs" />
+    <Compile Include="TCPClientSender.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
