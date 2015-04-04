@@ -58,7 +58,7 @@
     <Compile Include="ConnectionWindow.xaml.cs">
       <DependentUpon>ConnectionWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DictionaryExtensionMethods.cs" />
+    <Compile Include="Helpers\DictionaryExtensionMethods.cs" />
     <Compile Include="Helpers\CommandBase.cs" />
     <Compile Include="Networking\MessagePacket.cs" />
     <Compile Include="Models\Client.cs" />

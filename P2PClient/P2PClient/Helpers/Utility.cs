@@ -23,29 +23,8 @@ namespace P2PClient
                 table = (Dictionary<string, IPAddress>)formatter.Deserialize(ms);
             }
 
-            //Dictionary<string, IPAddress> tableWithConvertedStrings = new Dictionary<string, IPAddress>();
-
-            //foreach (KeyValuePair<string, IPAddress> client in table)
-            //{
-            //    tableWithConvertedStrings.Add(ConvertToString(client.Key), client.Value);
-            //}
             return table;
         }
-
-        //private static string ConvertToString(string p)
-        //{
-        //    string[] stringBytes = p.Split('-');
-        //    byte[] stringAsBytes = new byte[stringBytes.Length * 2];
-        //    string convertedString = "";
-
-        //    int index = 0;
-
-        //    foreach (string stringcharCode in stringBytes)
-        //    {
-        //        short.Parse(stringcharCode);
-
-        //    }
-        //}
 
         public static List<Client> GetClientsFromTable(Dictionary<string, IPAddress> routingTable)
         {

@@ -17,6 +17,8 @@ using P2PClient.Helpers;
 
 namespace P2PClient
 {
+    public delegate void MessageHandler(object sender, Client client);
+
     class ClientViewModel : ViewModelBase
     {
         #region constants
@@ -101,7 +103,19 @@ namespace P2PClient
 
         #endregion
 
+        #region events
 
+        public event MessageHandler NewConnection;
+
+        public void OnNewMessage(Client client)
+        {
+            if (NewConnection != null)
+                NewConnection(this, client);
+        }
+
+        #endregion
+
+        #region Constructor
         public ClientViewModel()
         {
             IPHostEntry host;
@@ -135,6 +149,10 @@ namespace P2PClient
 
             ThreadPool.QueueUserWorkItem(ListenForConnections);
         }
+
+        #endregion
+
+        #region Private Methods
 
         private void GetUpdatedUsers(object sender, ElapsedEventArgs e)
         {
@@ -193,9 +211,10 @@ namespace P2PClient
             return null;
         }
 
+        #endregion
 
 
-        #region Methods
+        #region Public Methods
 
         public void ListenForConnections(object threadContext)
         {
@@ -235,6 +254,7 @@ namespace P2PClient
                         {
                             c.ClientSocket = client;
                             ThreadPool.QueueUserWorkItem(ListenToPeer, c);
+                            OnNewMessage(c);
                         }
                     }
                 }
@@ -269,6 +289,10 @@ namespace P2PClient
 
             NetworkStream stream = SelectedClient.ClientSocket.GetStream();
             stream.Write(packetBytes, 0, packetBytes.Length);
+
+            SelectedClient.Conversation += _myUserName + ": " + Message + "\n";
+            OnNewMessage(SelectedClient);
+            Message = "";
         }
 
         public void GetUsers()
@@ -314,6 +338,7 @@ namespace P2PClient
                     packet = (MessagePacket)formatter.Deserialize(ms);
                 }
 
+                //TODO: Can we just do c.Conversation += data?
                 lock (Clients)
                 {
                     foreach (Client existingClient in Clients)
@@ -321,6 +346,7 @@ namespace P2PClient
                         if (existingClient.UserName == packet.UserNameFrom)
                         {
                             existingClient.Conversation += packet.UserNameFrom + ": " +packet.Message + "\n";
+                            OnNewMessage(existingClient);
                             break;
                         }
                     }
@@ -352,5 +378,4 @@ namespace P2PClient
         #endregion Commands
 
     }
-
 }

@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using P2PClient.Models;
 
 namespace P2PClient
 {
@@ -25,28 +27,98 @@ namespace P2PClient
         {
             InitializeComponent();
             viewModel = new ClientViewModel();
+            viewModel.NewConnection += NewMessageHanlder;
             this.DataContext = viewModel;
         }
+
+        private void NewMessageHanlder(object sender, Client client)
+        {
+            AddTab(client.ToString());
+
+            
+
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                    (Action) delegate
+                    {
+                        //Switch to that tab and dispaly the conversation
+                        for (int i = 0; i < ConversationTabControl.Items.Count; i++)
+                        {
+                            if (((TabItem) ConversationTabControl.Items[i]).Header == client.ToString())
+                            {
+                                ConversationTabControl.SelectedIndex = i;
+                                ((TabItem) ConversationTabControl.Items[i]).Content = client.Conversation;
+                            }
+                        }
+                    });
+            }
+            else
+            {
+                //Switch to that tab and dispaly the conversation
+                for (int i = 0; i < ConversationTabControl.Items.Count; i++)
+                {
+                    if (((TabItem)ConversationTabControl.Items[i]).Header == client.ToString())
+                    {
+                        ConversationTabControl.SelectedIndex = i;
+                        ((TabItem)ConversationTabControl.Items[i]).Content = client.Conversation;
+                    }
+                }
+            }
+        }
+
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             //Add the tab if it doesnt exist
             AddTab((sender as ListBox).SelectedItem.ToString());
 
-            //Switch to that tab
-            for(int i = 0; i < ConversationTabControl.Items.Count; i++)
-                if (((TabItem) ConversationTabControl.Items[i]).Header == (sender as ListBox).SelectedItem.ToString())
-                    ConversationTabControl.SelectedIndex = i;
+            if (!Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (Action)delegate
+                {
+                    for (int i = 0; i < ConversationTabControl.Items.Count; i++)
+                        if (((TabItem)ConversationTabControl.Items[i]).Header == (sender as ListBox).SelectedItem.ToString())
+                            ConversationTabControl.SelectedIndex = i;
+                });
+            }
+            else
+            {
+                for (int i = 0; i < ConversationTabControl.Items.Count; i++)
+                    if (((TabItem)ConversationTabControl.Items[i]).Header == (sender as ListBox).SelectedItem.ToString())
+                        ConversationTabControl.SelectedIndex = i;
+            }
+
+            
         }
 
         private void AddTab(string title)
         {
-            if (!TabExists(title))
+            if (!Dispatcher.CheckAccess())
             {
-                TabItem newTab = new TabItem();
-                newTab.Header = title;
-                ConversationTabControl.Items.Add(newTab);
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                (Action)delegate
+                {
+                    if (!TabExists(title))
+                    {
+                        TabItem newTab = new TabItem();
+                        newTab.Header = title;
+                        ConversationTabControl.Items.Add(newTab);
+                    }
+                });
             }
+            else
+            {
+                if (!TabExists(title))
+                {
+                    TabItem newTab = new TabItem();
+                    newTab.Header = title;
+                    ConversationTabControl.Items.Add(newTab);
+                }
+            }
+
+            
         }
 
         private bool TabExists(string title)
