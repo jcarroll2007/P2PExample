@@ -22,11 +22,16 @@ namespace P2PClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static object _syncLock = new object();
         ClientViewModel viewModel;
         public MainWindow()
         {
             InitializeComponent();
+
             viewModel = new ClientViewModel();
+
+            BindingOperations.EnableCollectionSynchronization(viewModel.Clients, _syncLock);
+
             viewModel.NewConnection += NewMessageHanlder;
             this.DataContext = viewModel;
         }

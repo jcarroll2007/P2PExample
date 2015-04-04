@@ -25,7 +25,7 @@ namespace P2PClient
     {
         private UdpClient _serverRouterClient;
 
-        public List<Client> Clients { get; set; }
+        public ObservableCollection<Client> Clients { get; set; }
 
         public string UserName { get; set; }
 

@@ -7,10 +7,13 @@ using System.Windows.Input;
 using System.Windows;
 using System.Collections.ObjectModel;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Timers;
+using System.Windows.Data;
+using System.Windows.Threading;
 using P2PClient.Models;
 using P2PClient.Helpers;
 
@@ -31,7 +34,7 @@ namespace P2PClient
         #region Properties
 
         //Dictionary of the users to their IP addresses
-        public List<Client> Clients { get; set; }
+        public ObservableCollection<Client> Clients { get; set; }
 
         // Properties are accessed in the XAML of the MainWindow (MainWindow.xaml)
         public string Messages
@@ -101,6 +104,8 @@ namespace P2PClient
         //My IP
         private string _myIP;
 
+       
+
         #endregion
 
         #region events
@@ -118,6 +123,7 @@ namespace P2PClient
         #region Constructor
         public ClientViewModel()
         {
+
             IPHostEntry host;
             host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (IPAddress ip in host.AddressList)
@@ -130,7 +136,7 @@ namespace P2PClient
 
             _serverRouterClient = new UdpClient();
 
-            
+           
 
             // Dummy Data
             Messages = "Hello\nHello2";
@@ -167,7 +173,7 @@ namespace P2PClient
 
             byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
 
-            List<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+            ObservableCollection<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
 
             //TODO: This sucks! really slow code in a lock. Does this even need to be locked? (I think yes because of iterators)
             lock (Clients)
@@ -179,6 +185,8 @@ namespace P2PClient
 
                 foreach (Client incomingCient in incomingClients)
                 {
+                    if (incomingCient.UserName == _myUserName)
+                        continue;
                     Client existingClient = ContainsUser(incomingCient);
                     if (existingClient != null)
                         existingClient.Alive = true;
@@ -198,6 +206,7 @@ namespace P2PClient
             }
 
             RaisePropertyChanged("Clients");
+           
         }
 
         private Client ContainsUser(Client incomingClient)
