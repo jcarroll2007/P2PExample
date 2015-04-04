@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
 using System.Collections.ObjectModel;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using P2PClient.Models;
 using P2PClient.Helpers;
 
@@ -15,17 +18,31 @@ namespace P2PClient
     class ClientViewModel : ViewModelBase
     {
 
+        #region Constatnts
+        private const string SERVER_ROUTER_IP = "156.156.145.156";
+        private const int SERVER_ROUTER_PORT = 55555;
+        #endregion
+
         // List of clients displayed in the listbox
         public ObservableCollection<Client> Clients { get; set; }
         // The selected client from the list box
-        private Client selectedClient;
+        private Client _selectedClient;
         // messages that are displayed on the message terminal (this should probably be a list of Messages, a model that needs to be created)
-        private string messages;
+        private string _messages;
         // The message that the user types in to send to a specified client.
-        private string message;
+        private string _message;
+        //our UDP client to talk to the server router
+        private UdpClient _serverRouterClient;
+        //Our table of users
+        private Dictionary<string, IPAddress> _userTable;
+
 
         public ClientViewModel()
         {
+            _userTable = new Dictionary<string, IPAddress>();
+
+            _serverRouterClient = new UdpClient(SERVER_ROUTER_IP, SERVER_ROUTER_PORT);
+
             Clients = new ObservableCollection<Client>()
             {
                 new Client("156.156.156.156")
@@ -55,13 +72,13 @@ namespace P2PClient
         {
             get
             {
-                return messages;
+                return _messages;
             }
             set
             {
-                if (messages != value)
+                if (_messages != value)
                 {
-                    messages = value;
+                    _messages = value;
                     RaisePropertyChanged("Messages");
                 }
             }
@@ -71,13 +88,13 @@ namespace P2PClient
         {
             get
             {
-                return message;
+                return _message;
             }
             set
             {
-                if (message != value)
+                if (_message != value)
                 {
-                    message = value;
+                    _message = value;
                     RaisePropertyChanged("Message");
                 }
             }
@@ -87,13 +104,13 @@ namespace P2PClient
         {
             get
             {
-                return selectedClient;
+                return _selectedClient;
             }
             set
             {
-                if (selectedClient != value)
+                if (_selectedClient != value)
                 {
-                    selectedClient = value;
+                    _selectedClient = value;
                     RaisePropertyChanged("Message");
                     ConnectToClient(SelectedClient);
                 }
@@ -120,12 +137,53 @@ namespace P2PClient
             // TODO: Send message
         }
 
-        public void ConnectToRouter()
+        public void ConnectToRouter(string userName)
         {
-            // TODO: Connect to router and request client ips
+            byte[] connectionPacket = new byte[4 + userName.Length * 2];
+
+            BitConverter.GetBytes(userName.Length).CopyTo(connectionPacket, 0);
+            Encoding.ASCII.GetBytes(userName).CopyTo(connectionPacket, 4);
+
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(SERVER_ROUTER_IP), SERVER_ROUTER_PORT);
+
+            _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
+                                    remoteEndPoint);
+
+            byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
+
+            if (responseBytes.Length == 1)
+            {
+                //TODO: That user name already exists!
+            }
+            else
+            {
+                _userTable.Merge(GetRoutingTableFromBytes(responseBytes));
+            }
+
         }
 
+        public void GetUsers()
+        {
+            
+        }
+
+        
+
         #endregion Methods
+
+        #region Helper Methods
+        private Dictionary<string, IPAddress> GetRoutingTableFromBytes(byte[] bytes)
+        {
+            Dictionary<string, IPAddress> table;
+
+            using (var ms = new System.IO.MemoryStream(bytes))
+            {
+                var formatter = new BinaryFormatter();
+                table = (Dictionary<string, IPAddress>)formatter.Deserialize(ms);
+            }
+            return table;
+        }
+        #endregion
 
         #region Commands
         // A command is tied to a button to create the link between the button and a method
@@ -147,4 +205,5 @@ namespace P2PClient
         #endregion Commands
 
     }
+
 }

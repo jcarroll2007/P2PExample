@@ -57,7 +57,6 @@
     <Compile Include="ClientViewModel.cs" />
     <Compile Include="Helpers\CommandBase.cs" />
     <Compile Include="Models\Client.cs" />
-    <Compile Include="TCPClientSender.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
