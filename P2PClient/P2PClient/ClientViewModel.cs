@@ -253,6 +253,7 @@ namespace P2PClient
                         if (c.UserName == packet.UserNameFrom)
                         {
                             c.ClientSocket = client;
+                            c.Conversation += packet.UserNameFrom + ": " + packet.Message + "\n";
                             ThreadPool.QueueUserWorkItem(ListenToPeer, c);
                             OnNewMessage(c);
                         }

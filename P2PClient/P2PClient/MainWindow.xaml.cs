@@ -65,6 +65,8 @@ namespace P2PClient
                     }
                 }
             }
+
+            viewModel.SelectedClient = client;
         }
 
 
@@ -133,5 +135,14 @@ namespace P2PClient
         }
 
 
+        private void ConversationTabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            foreach (Client client in viewModel.Clients)
+            {
+                if (client.UserName ==
+                    ((TabItem) ConversationTabControl.Items[ConversationTabControl.SelectedIndex]).Header)
+                    viewModel.SelectedClient = client;
+            }
+        }
     }
 }
