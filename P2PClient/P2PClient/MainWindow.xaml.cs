@@ -30,7 +30,13 @@ namespace P2PClient
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            //Add the tab if it doesnt exist
             AddTab((sender as ListBox).SelectedItem.ToString());
+
+            //Switch to that tab
+            for(int i = 0; i < ConversationTabControl.Items.Count; i++)
+                if (((TabItem) ConversationTabControl.Items[i]).Header == (sender as ListBox).SelectedItem.ToString())
+                    ConversationTabControl.SelectedIndex = i;
         }
 
         private void AddTab(string title)
