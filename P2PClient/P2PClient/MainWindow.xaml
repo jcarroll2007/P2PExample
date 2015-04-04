@@ -14,7 +14,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Label Content="Available Users" HorizontalAlignment="Center"/>
-            <ListBox Grid.Row="1" ItemsSource="{Binding Clients, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedClient}" SelectionChanged="ListBox_SelectionChanged"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Clients, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" SelectedItem="{Binding SelectedClient}" SelectionChanged="ListBox_SelectionChanged"/>
         </Grid>
 
         <Grid Grid.Column="2">

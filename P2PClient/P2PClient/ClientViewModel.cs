@@ -178,6 +178,8 @@ namespace P2PClient
                 }
                 
             }
+
+            RaisePropertyChanged("Clients");
         }
 
         private Client ContainsUser(Client incomingClient)
@@ -243,6 +245,9 @@ namespace P2PClient
 
         public void SendMessage()
         {
+            if (SelectedClient == null)
+                return;
+
             if (SelectedClient.ClientSocket == null)
             {
                 SelectedClient.ClientSocket = new TcpClient(SelectedClient.IPAddress, CLIENT_PORT);

@@ -57,7 +57,7 @@ namespace TCPServerRouter
                         #region New Connections
                         case NEW_CONNECTION:
                             int userNameLength = BitConverter.ToInt32(data, 4);
-                            string userName = BitConverter.ToString(data, 8, userNameLength);
+                            string userName = Encoding.ASCII.GetString(data, 8, userNameLength);
 
                             Dictionary<string, IPAddress> totalRoutingTale = GetTotalRoutingTable();
 
