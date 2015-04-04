@@ -29,7 +29,7 @@ namespace P2PClient
         #region Properties
 
         //Dictionary of the users to their IP addresses
-        public ObservableCollection<Client> Clients { get; set; }
+        public List<Client> Clients { get; set; }
 
         // Properties are accessed in the XAML of the MainWindow (MainWindow.xaml)
         public string Messages
@@ -116,10 +116,7 @@ namespace P2PClient
 
             _serverRouterClient = new UdpClient();
 
-            _updatePeersTimer = new System.Timers.Timer();
-            _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
-            _updatePeersTimer.Elapsed += new ElapsedEventHandler(GetUpdatedUsers);
-            _updatePeersTimer.Start();
+            
 
             // Dummy Data
             Messages = "Hello\nHello2";
@@ -130,6 +127,11 @@ namespace P2PClient
 
             Clients = connectWindow.Clients;
             _myUserName = connectWindow.UserName;
+
+            _updatePeersTimer = new System.Timers.Timer();
+            _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
+            _updatePeersTimer.Elapsed += new ElapsedEventHandler(GetUpdatedUsers);
+            _updatePeersTimer.Start();
 
             ThreadPool.QueueUserWorkItem(ListenForConnections);
         }
@@ -147,7 +149,7 @@ namespace P2PClient
 
             byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
 
-            ObservableCollection<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+            List<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
 
             //TODO: This sucks! really slow code in a lock. Does this even need to be locked? (I think yes because of iterators)
             lock (Clients)
@@ -164,6 +166,7 @@ namespace P2PClient
                         existingClient.Alive = true;
                     else
                     {
+                        incomingCient.Alive = true;
                         Clients.Add(incomingCient);
                     }
                 }

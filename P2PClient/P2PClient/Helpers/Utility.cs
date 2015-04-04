@@ -25,9 +25,9 @@ namespace P2PClient
             return table;
         }
 
-        public static System.Collections.ObjectModel.ObservableCollection<Client> GetClientsFromTable(Dictionary<string, IPAddress> routingTable)
+        public static List<Client> GetClientsFromTable(Dictionary<string, IPAddress> routingTable)
         {
-            ObservableCollection<Client> clients = new ObservableCollection<Client>();
+            List<Client> clients = new List<Client>();
             foreach (KeyValuePair<string, IPAddress> client in routingTable)
             {
                 Client c = new Client(client.Value.ToString());
