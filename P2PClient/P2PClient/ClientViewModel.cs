@@ -96,17 +96,30 @@ namespace P2PClient
         private string _myUserName;
         //Timer to ping the serverrouter for new peers
         private System.Timers.Timer _updatePeersTimer;
+        //My IP
+        private string _myIP;
 
         #endregion
 
 
         public ClientViewModel()
         {
+            IPHostEntry host;
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    _myIP = ip.ToString();
+                }
+            }
+
             _serverRouterClient = new UdpClient();
 
             _updatePeersTimer = new System.Timers.Timer();
             _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
             _updatePeersTimer.Elapsed += new ElapsedEventHandler(GetUpdatedUsers);
+            _updatePeersTimer.Start();
 
             // Dummy Data
             Messages = "Hello\nHello2";
@@ -181,7 +194,7 @@ namespace P2PClient
 
         public void ListenForConnections(object threadContext)
         {
-            IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+            IPAddress localAddr = IPAddress.Parse(_myIP);
 
             TcpListener server = new TcpListener(localAddr, CLIENT_PORT);
             server.Start();
