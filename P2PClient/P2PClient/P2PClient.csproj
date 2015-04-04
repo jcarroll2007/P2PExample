@@ -55,9 +55,19 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="ClientViewModel.cs" />
+    <Compile Include="ConnectionWindow.xaml.cs">
+      <DependentUpon>ConnectionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DictionaryExtensionMethods.cs" />
     <Compile Include="Helpers\CommandBase.cs" />
     <Compile Include="Models\Client.cs" />
+    <Compile Include="PacketDefinitions.cs" />
+    <Compile Include="Helpers\Utility.cs" />
     <Compile Include="ViewModelBase.cs" />
+    <Page Include="ConnectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -13,8 +13,8 @@ namespace TCPServerRouter
 {
     public class ServerRouter
     {
-        public const int CLIENT_LISTEN_PORT = 55555;
-        public const int SERVER_LISTEN_PORT = 55555;
+        public const int CLIENT_LISTEN_PORT = 5555;
+        public const int SERVER_LISTEN_PORT = 6666;
         
 
         public static void Main(string[] args)
