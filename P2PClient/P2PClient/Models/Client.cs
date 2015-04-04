@@ -18,6 +18,7 @@ namespace P2PClient.Models
         private string _userName;
         private string _conversation;
         private TcpClient _client;
+        private bool _alive;
 
 
         public Client() {}
@@ -54,6 +55,12 @@ namespace P2PClient.Models
         {
             get { return _conversation; }
             set { _conversation = value; }
+        }
+
+        public bool Alive
+        {
+            get { return _alive; }
+            set { _alive = value; }
         }
     }
 }

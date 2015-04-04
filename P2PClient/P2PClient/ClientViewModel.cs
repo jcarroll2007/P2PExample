@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
+using System.Timers;
 using P2PClient.Models;
 using P2PClient.Helpers;
 
@@ -21,6 +22,8 @@ namespace P2PClient
         #region constants
         //the port to listen for other clients on
         private const int CLIENT_PORT = 9999;
+        //How often do we update our client table from the server router?
+        private const int GET_UPDATED_USERS_TICK_RATE = 1000;
         #endregion
 
         #region Properties
@@ -73,7 +76,6 @@ namespace P2PClient
                 {
                     _selectedClient = value;
                     RaisePropertyChanged("SelectedClient");
-                    ConnectToClient(SelectedClient);
                 }
             }
         }
@@ -91,7 +93,9 @@ namespace P2PClient
         //our UDP client to talk to the server router
         private UdpClient _serverRouterClient;
         //Our table of users
-        
+        private string _myUserName;
+        //Timer to ping the serverrouter for new peers
+        private System.Timers.Timer _updatePeersTimer;
 
         #endregion
 
@@ -99,6 +103,10 @@ namespace P2PClient
         public ClientViewModel()
         {
             _serverRouterClient = new UdpClient();
+
+            _updatePeersTimer = new System.Timers.Timer();
+            _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
+            _updatePeersTimer.Elapsed += new ElapsedEventHandler(GetUpdatedUsers);
 
             // Dummy Data
             Messages = "Hello\nHello2";
@@ -108,8 +116,63 @@ namespace P2PClient
             connectWindow.ShowDialog();
 
             Clients = connectWindow.Clients;
+            _myUserName = connectWindow.UserName;
 
             ThreadPool.QueueUserWorkItem(ListenForConnections);
+        }
+
+        private void GetUpdatedUsers(object sender, ElapsedEventArgs e)
+        {
+            byte[] connectionPacket = new byte[4];
+
+            BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
+
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.SERVER_ROUTER_IP), Client.SERVER_ROUTER_PORT);
+
+            _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
+                                    remoteEndPoint);
+
+            byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
+
+            ObservableCollection<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+
+            //TODO: This sucks! really slow code in a lock. Does this even need to be locked? (I think yes because of iterators)
+            lock (Clients)
+            {
+                foreach (Client c in Clients)
+                {
+                    c.Alive = false;
+                }
+
+                foreach (Client incomingCient in incomingClients)
+                {
+                    Client existingClient = ContainsUser(incomingCient);
+                    if (existingClient != null)
+                        existingClient.Alive = true;
+                    else
+                    {
+                        Clients.Add(incomingCient);
+                    }
+                }
+
+                for (int i = Clients.Count - 1; i >= 0; i--)
+                {
+                    if(!Clients[i].Alive)
+                        Clients.RemoveAt(i);
+                }
+                
+            }
+        }
+
+        private Client ContainsUser(Client incomingClient)
+        {
+            foreach (Client existingClient in Clients)
+            {
+                if (existingClient.UserName == incomingClient.UserName)
+                    return existingClient;    
+            }
+
+            return null;
         }
 
 
@@ -118,10 +181,9 @@ namespace P2PClient
 
         public void ListenForConnections(object threadContext)
         {
-            int port = 13000;
             IPAddress localAddr = IPAddress.Parse("127.0.0.1");
 
-            TcpListener server = new TcpListener(localAddr, port);
+            TcpListener server = new TcpListener(localAddr, CLIENT_PORT);
             server.Start();
 
             while (true)
@@ -137,10 +199,8 @@ namespace P2PClient
 
                 NetworkStream stream = client.GetStream();
 
-                int bytesRead;
-
                 Byte[] message = new Byte[4096];
-                bytesRead = stream.Read(message, 0, 4096);
+                int bytesRead = stream.Read(message, 0, 4096);
 
                 MessagePacket packet;
                 using (var ms = new System.IO.MemoryStream(message))
@@ -149,41 +209,102 @@ namespace P2PClient
                     packet = (MessagePacket)formatter.Deserialize(ms);
                 }
 
-                foreach (Client c in Clients)
+                lock (Clients)
                 {
-                    if (c.UserName == packet.UserNameFrom)
-                        c.ClientSocket = client;
+                    foreach (Client c in Clients)
+                    {
+                        if (c.UserName == packet.UserNameFrom)
+                        {
+                            c.ClientSocket = client;
+                            ThreadPool.QueueUserWorkItem(ListenToPeer, c);
+                        }
+                    }
                 }
-                
+
             }
         }
 
-        public void ConnectToClient(Client client)
-        {
-            // TODO: connect to specific client and send data
-        }
 
         public void SendMessage()
         {
             if (SelectedClient.ClientSocket == null)
             {
-                TcpClient client = new TcpClient(SelectedClient.IPAddress, CLIENT_PORT); 
- 
+                SelectedClient.ClientSocket = new TcpClient(SelectedClient.IPAddress, CLIENT_PORT);
+                ThreadPool.QueueUserWorkItem(ListenToPeer, SelectedClient);
             }
+
+            MessagePacket packet = new MessagePacket();
+            packet.UserNameFrom = _myUserName;
+            packet.Message = Message;
+
+            byte[] packetBytes;
+
+            using (var ms = new System.IO.MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, packet);
+                packetBytes = ms.ToArray();
+            }
+
+            NetworkStream stream = SelectedClient.ClientSocket.GetStream();
+            stream.Write(packetBytes, 0, packetBytes.Length);
         }
-
-
-
-        
 
         public void GetUsers()
         {
-            //TODO: ping the server router for new users
+            byte[] connectionPacket = new byte[4];
+
+            BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
+
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.SERVER_ROUTER_IP), Client.SERVER_ROUTER_PORT);
+
+            _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
+                                    remoteEndPoint);
+
+            byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
+
+            lock (Clients)
+            {
+                Clients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+            }
+
         }
 
-        private void HandleConnection()
+        private void ListenToPeer(object threadContext)
         {
-            
+            Client c = threadContext as Client;
+
+            if (c == null)
+                return;
+
+            while (true)
+            {
+                TcpClient client = c.ClientSocket;
+
+                NetworkStream stream = client.GetStream();
+
+                var message = new byte[4096];
+                int bytesRead = stream.Read(message, 0, 4096);
+
+                MessagePacket packet;
+                using (var ms = new System.IO.MemoryStream(message))
+                {
+                    var formatter = new BinaryFormatter();
+                    packet = (MessagePacket)formatter.Deserialize(ms);
+                }
+
+                lock (Clients)
+                {
+                    foreach (Client existingClient in Clients)
+                    {
+                        if (existingClient.UserName == packet.UserNameFrom)
+                        {
+                            existingClient.Conversation += packet.UserNameFrom + ": " +packet.Message + "\n";
+                            break;
+                        }
+                    }
+                }
+            }
         }
         
 

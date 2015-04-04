@@ -27,6 +27,8 @@ namespace P2PClient
 
         public ObservableCollection<Client> Clients { get; set; }
 
+        public string UserName { get; set; }
+
 
         public ConnectionWindow(UdpClient client)
         {
@@ -60,24 +62,14 @@ namespace P2PClient
             }
             else
             {
-                Clients = GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+                Clients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
+                UserName = UsernameTextBox.Text;
                 this.Close();
             }
 
         }
 
-        private System.Collections.ObjectModel.ObservableCollection<Client> GetClientsFromTable(Dictionary<string, IPAddress> routingTable)
-        {
-            ObservableCollection<Client> clients = new ObservableCollection<Client>();
-            foreach (KeyValuePair<string, IPAddress> client in routingTable)
-            {
-                Client c = new Client(client.Value.ToString());
-                c.UserName = client.Key;
-                clients.Add(c);
-            }
-
-            return clients;
-        }
+        
 
         
     }
