@@ -60,8 +60,9 @@
     </Compile>
     <Compile Include="DictionaryExtensionMethods.cs" />
     <Compile Include="Helpers\CommandBase.cs" />
+    <Compile Include="Networking\MessagePacket.cs" />
     <Compile Include="Models\Client.cs" />
-    <Compile Include="PacketDefinitions.cs" />
+    <Compile Include="Networking\PacketDefinitions.cs" />
     <Compile Include="Helpers\Utility.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Page Include="ConnectionWindow.xaml">

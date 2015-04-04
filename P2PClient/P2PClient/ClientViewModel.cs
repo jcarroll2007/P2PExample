@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using P2PClient.Models;
 using P2PClient.Helpers;
 
@@ -17,51 +18,16 @@ namespace P2PClient
 {
     class ClientViewModel : ViewModelBase
     {
-
-       
-
-        // List of clients displayed in the listbox
-        public ObservableCollection<Client> Clients { get; set; }
-        // The selected client from the list box
-        private Client _selectedClient;
-        // messages that are displayed on the message terminal (this should probably be a list of Messages, a model that needs to be created)
-        private string _messages;
-        // The message that the user types in to send to a specified client.
-        private string _message;
-        //our UDP client to talk to the server router
-        private UdpClient _serverRouterClient;
-        //Our table of users
-        public Dictionary<string, IPAddress> UserTable { get; set; }
-
-
-        public ClientViewModel()
-        {
-            UserTable = new Dictionary<string, IPAddress>();
-
-            _serverRouterClient = new UdpClient();
-
-            Clients = new ObservableCollection<Client>()
-            {
-
-            };
-
-
-
-            // Dummy Data
-            Messages = "Hello\nHello2";
-
-
-
-            // Inits
-            ConnectionWindow connectWindow = new ConnectionWindow(_serverRouterClient);
-            connectWindow.ShowDialog();
-
-            UserTable = connectWindow.UserTable;
-
-            ListenForConnections();
-        }
+        #region constants
+        //the port to listen for other clients on
+        private const int CLIENT_PORT = 9999;
+        #endregion
 
         #region Properties
+
+        //Dictionary of the users to their IP addresses
+        public ObservableCollection<Client> Clients { get; set; }
+
         // Properties are accessed in the XAML of the MainWindow (MainWindow.xaml)
         public string Messages
         {
@@ -106,31 +72,107 @@ namespace P2PClient
                 if (_selectedClient != value)
                 {
                     _selectedClient = value;
-                    RaisePropertyChanged("Message");
+                    RaisePropertyChanged("SelectedClient");
                     ConnectToClient(SelectedClient);
                 }
             }
         }
+
         #endregion Properties
+
+        #region private variables
+        // List of clients displayed in the listbox
+        // The selected client from the list box
+        private Client _selectedClient;
+        // messages that are displayed on the message terminal (this should probably be a list of Messages, a model that needs to be created)
+        private string _messages;
+        // The message that the user types in to send to a specified client.
+        private string _message;
+        //our UDP client to talk to the server router
+        private UdpClient _serverRouterClient;
+        //Our table of users
+        
+
+        #endregion
+
+
+        public ClientViewModel()
+        {
+            _serverRouterClient = new UdpClient();
+
+            // Dummy Data
+            Messages = "Hello\nHello2";
+
+            // Inits
+            ConnectionWindow connectWindow = new ConnectionWindow(_serverRouterClient);
+            connectWindow.ShowDialog();
+
+            Clients = connectWindow.Clients;
+
+            ThreadPool.QueueUserWorkItem(ListenForConnections);
+        }
+
+
 
         #region Methods
 
-        public void ListenForConnections()
+        public void ListenForConnections(object threadContext)
         {
-            // TODO: Start a new thread and socket to listen for connections from other clients
+            int port = 13000;
+            IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+
+            TcpListener server = new TcpListener(localAddr, port);
+            server.Start();
+
+            while (true)
+            {
+                
+
+                TcpClient client = server.AcceptTcpClient();
+
+                Console.WriteLine("Accepted Connection!");
+
+                IPEndPoint ipep = (IPEndPoint) client.Client.RemoteEndPoint;
+                IPAddress ipa = ipep.Address;
+
+                NetworkStream stream = client.GetStream();
+
+                int bytesRead;
+
+                Byte[] message = new Byte[4096];
+                bytesRead = stream.Read(message, 0, 4096);
+
+                MessagePacket packet;
+                using (var ms = new System.IO.MemoryStream(message))
+                {
+                    var formatter = new BinaryFormatter();
+                    packet = (MessagePacket)formatter.Deserialize(ms);
+                }
+
+                foreach (Client c in Clients)
+                {
+                    if (c.UserName == packet.UserNameFrom)
+                        c.ClientSocket = client;
+                }
+                
+            }
         }
 
         public void ConnectToClient(Client client)
         {
-            MessageBox.Show(client.IPAddress);
             // TODO: connect to specific client and send data
         }
 
         public void SendMessage()
         {
-            MessageBox.Show(Message);
-            // TODO: Send message
+            if (SelectedClient.ClientSocket == null)
+            {
+                TcpClient client = new TcpClient(SelectedClient.IPAddress, CLIENT_PORT); 
+ 
+            }
         }
+
+
 
         
 
@@ -139,6 +181,10 @@ namespace P2PClient
             //TODO: ping the server router for new users
         }
 
+        private void HandleConnection()
+        {
+            
+        }
         
 
         #endregion Methods

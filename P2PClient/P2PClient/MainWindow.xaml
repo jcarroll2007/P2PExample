@@ -14,7 +14,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Label Content="Available Users" HorizontalAlignment="Center"/>
-            <ListBox Grid.Row="1" ItemsSource="{Binding UserTable.Keys, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedClient}"/>
+            <ListBox Grid.Row="1" ItemsSource="{Binding Clients, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedClient}" SelectionChanged="ListBox_SelectionChanged"/>
         </Grid>
 
         <Grid Grid.Column="2">
@@ -22,7 +22,6 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="{Binding Messages, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -31,6 +30,7 @@
                 <TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Grid.Column="1" Content="Send" Width="80" Command="{Binding SendCommand}"/>
             </Grid>
+            <TabControl x:Name="ConversationTabControl" Margin="0,0,0,5" />
         </Grid>
     </Grid>
 </Window>

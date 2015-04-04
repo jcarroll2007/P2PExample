@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -23,13 +24,14 @@ namespace P2PClient
     public partial class ConnectionWindow : Window
     {
         private UdpClient _serverRouterClient;
-        public Dictionary<string, IPAddress> UserTable { get; set; } 
+
+        public ObservableCollection<Client> Clients { get; set; }
+
 
         public ConnectionWindow(UdpClient client)
         {
             InitializeComponent();
             _serverRouterClient = client;
-            UserTable = new Dictionary<string, IPAddress>();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -58,10 +60,25 @@ namespace P2PClient
             }
             else
             {
-                UserTable.Merge(Utility.GetRoutingTableFromBytes(responseBytes));
+                Clients = GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
                 this.Close();
             }
 
         }
+
+        private System.Collections.ObjectModel.ObservableCollection<Client> GetClientsFromTable(Dictionary<string, IPAddress> routingTable)
+        {
+            ObservableCollection<Client> clients = new ObservableCollection<Client>();
+            foreach (KeyValuePair<string, IPAddress> client in routingTable)
+            {
+                Client c = new Client(client.Value.ToString());
+                c.UserName = client.Key;
+                clients.Add(c);
+            }
+
+            return clients;
+        }
+
+        
     }
 }

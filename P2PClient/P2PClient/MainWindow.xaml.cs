@@ -27,5 +27,33 @@ namespace P2PClient
             viewModel = new ClientViewModel();
             this.DataContext = viewModel;
         }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            AddTab((sender as ListBox).SelectedItem.ToString());
+        }
+
+        private void AddTab(string title)
+        {
+            if (!TabExists(title))
+            {
+                TabItem newTab = new TabItem();
+                newTab.Header = title;
+                ConversationTabControl.Items.Add(newTab);
+            }
+        }
+
+        private bool TabExists(string title)
+        {
+            foreach (TabItem tab in ConversationTabControl.Items)
+            {
+                if (tab.Header.ToString() == title)
+                    return true;
+            }
+
+            return false;
+        }
+
+
     }
 }
