@@ -25,7 +25,7 @@ namespace TCPServerRouter
 
         #region Public Data
 
-        public static List<IPAddress> ServerRouters = new List<IPAddress>() { IPAddress.Parse("172.16.20.121")};
+        public static List<IPAddress> ServerRouters = new List<IPAddress>() {IPAddress.Parse("172.16.20.21")};
         public static DataContractSerializer Serializer = new DataContractSerializer(typeof(List<Dictionary<string, IPAddress>>));
         public static Dictionary<string, IPAddress> RoutingTable = new Dictionary<string, IPAddress>();
 
@@ -114,7 +114,7 @@ namespace TCPServerRouter
             }
             foreach (IPAddress ip in ServerRouters)
             {
-                UdpClient client = new UdpClient();
+                UdpClient client = new UdpClient(ServerRouter.SERVER_LISTEN_PORT);
                 var serverRouterEndPoint = new IPEndPoint(ip, ServerRouter.SERVER_LISTEN_PORT);
                 client.Send(new byte[] { 128 }, 1, serverRouterEndPoint);
 

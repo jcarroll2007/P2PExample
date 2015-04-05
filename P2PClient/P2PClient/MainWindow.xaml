@@ -30,7 +30,7 @@
                 <TextBox Text="{Binding Message, UpdateSourceTrigger=PropertyChanged}"/>
                 <Button Grid.Column="1" Content="Send" Width="80" Command="{Binding SendCommand}"/>
             </Grid>
-            <TabControl x:Name="ConversationTabControl" Margin="0,0,0,5" />
+            <TabControl x:Name="ConversationTabControl" Margin="0,0,0,5" SelectionChanged="ConversationTabControl_OnSelectionChanged" />
         </Grid>
     </Grid>
 </Window>
