@@ -104,6 +104,7 @@ namespace P2PClient
         //My IP
         private string _myIP;
 
+        private string _serverRouterIP;
        
 
         #endregion
@@ -147,6 +148,7 @@ namespace P2PClient
 
             Clients = connectWindow.Clients;
             _myUserName = connectWindow.UserName;
+            _serverRouterIP = connectWindow.ServerRouterIP;
 
             _updatePeersTimer = new System.Timers.Timer();
             _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
@@ -166,7 +168,7 @@ namespace P2PClient
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
 
-            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_selectedClient.ServerRouterIP), Client.SERVER_ROUTER_PORT);
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverRouterIP), Client.SERVER_ROUTER_PORT);
 
             _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
                                     remoteEndPoint);
@@ -311,7 +313,7 @@ namespace P2PClient
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
 
-            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_selectedClient.ServerRouterIP), Client.SERVER_ROUTER_PORT);
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverRouterIP), Client.SERVER_ROUTER_PORT);
 
             _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
                                     remoteEndPoint);

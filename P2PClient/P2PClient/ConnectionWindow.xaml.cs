@@ -27,9 +27,10 @@ namespace P2PClient
 
         public ObservableCollection<Client> Clients { get; set; }
 
-        public string UserName { get; set; }
+
         public string ServerRouterIP { get; set; }
         public string ClientPort { get; set; }
+        public string UserName { get; set; }
 
 
         public ConnectionWindow(UdpClient client)
@@ -48,6 +49,9 @@ namespace P2PClient
         public void ConnectToRouter(string userName)
         {
             byte[] connectionPacket = new byte[4 + 4 + userName.Length * 2];
+
+            ServerRouterIP = RouterIPBox.Text;
+            ClientPort = ClientPortBox.Text;
 
             BitConverter.GetBytes(PacketDefinitions.NEW_CONNECTION_HEADER).CopyTo(connectionPacket, 0);
             BitConverter.GetBytes(userName.Length).CopyTo(connectionPacket, 4);
