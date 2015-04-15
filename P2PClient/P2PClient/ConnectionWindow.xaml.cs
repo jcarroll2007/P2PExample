@@ -36,6 +36,8 @@ namespace P2PClient
         {
             InitializeComponent();
             _serverRouterClient = client;
+            RouterIPBox.Text = "172.16.20.21";
+            ClientPortBox.Text = "55555";
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -51,7 +53,7 @@ namespace P2PClient
             BitConverter.GetBytes(userName.Length).CopyTo(connectionPacket, 4);
             Encoding.ASCII.GetBytes(userName).CopyTo(connectionPacket, 8);
 
-            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.SERVER_ROUTER_IP), Client.SERVER_ROUTER_PORT);
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(ServerRouterIP), Client.SERVER_ROUTER_PORT);
 
             _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
                                     remoteEndPoint);
