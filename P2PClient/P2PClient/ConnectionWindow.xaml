@@ -3,10 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="New Connection" Height="161" Width="273">
     <Grid>
-        <Label Content="Username: " HorizontalAlignment="Left" VerticalAlignment="Top" Margin="37,43,0,0"/>
-        <TextBox x:Name="UsernameTextBox" HorizontalAlignment="Left" Height="23" Margin="106,45,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+        <Label Content="Username: " HorizontalAlignment="Left" VerticalAlignment="Top" Margin="37,10,0,0" RenderTransformOrigin="0.536,-0.692"/>
+        <TextBox x:Name="UsernameTextBox" HorizontalAlignment="Left" Height="23" Margin="106,12,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
         <Button Content="Connect" HorizontalAlignment="Left" Margin="180,99,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
         <Label x:Name="ErrorLabel" Content="Error: That username already exists!" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="37,69,0,0" Foreground="#FFFF0202" Visibility="Hidden"/>
+        <Label Content="Router IP: " HorizontalAlignment="Left" VerticalAlignment="Top" Margin="37,34,0,0" RenderTransformOrigin="0.536,-0.692"/>
+        <TextBox x:Name="RouterIPBox" HorizontalAlignment="Left" Height="23" Margin="106,36,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+        <Label Content="Client Port: " HorizontalAlignment="Left" VerticalAlignment="Top" Margin="37,62,0,0" RenderTransformOrigin="0.536,-0.692"/>
+        <TextBox x:Name="ClientPortBox" HorizontalAlignment="Left" Height="23" Margin="106,64,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

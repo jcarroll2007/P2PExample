@@ -9,8 +9,8 @@ namespace P2PClient.Models
 {
     public class Client
     {
-        #region Constatnts
-        public const string SERVER_ROUTER_IP = "172.16.20.121";
+        #region  ServerRouter
+        public string ServerRouterIP = "172.16.20.121";
         public const int SERVER_ROUTER_PORT = 5555;
         #endregion
 

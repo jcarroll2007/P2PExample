@@ -166,7 +166,7 @@ namespace P2PClient
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
 
-            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.SERVER_ROUTER_IP), Client.SERVER_ROUTER_PORT);
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.ServerRouterIP), Client.SERVER_ROUTER_PORT);
 
             _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
                                     remoteEndPoint);
@@ -311,7 +311,7 @@ namespace P2PClient
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
 
-            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.SERVER_ROUTER_IP), Client.SERVER_ROUTER_PORT);
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(Client.ServerRouterIP), Client.SERVER_ROUTER_PORT);
 
             _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
                                     remoteEndPoint);
