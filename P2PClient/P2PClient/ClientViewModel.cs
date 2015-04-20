@@ -224,7 +224,6 @@ namespace P2PClient
 
         #endregion
 
-
         #region Public Methods
 
         public void ListenForConnections(object threadContext)
@@ -368,7 +367,6 @@ namespace P2PClient
         
 
         #endregion Methods
-
 
         #region Commands
         // A command is tied to a button to create the link between the button and a method
