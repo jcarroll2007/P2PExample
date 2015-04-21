@@ -17,8 +17,8 @@ namespace TCPServerRouter
 
         public void isAlive()
         {
-            TimeSpan t = (DateTime.Now - new DateTime(1970, 1, 1));
-            LastContactTime = (int)t.TotalMilliseconds;
+            double t = (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            LastContactTime = t;
         }
     }
 }
