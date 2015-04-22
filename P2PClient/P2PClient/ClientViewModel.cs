@@ -164,9 +164,11 @@ namespace P2PClient
 
         private void GetUpdatedUsers(object sender, ElapsedEventArgs e)
         {
-            byte[] connectionPacket = new byte[4];
+            byte[] connectionPacket = new byte[4 + 4 + _myUserName.Length * 2];
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
+            BitConverter.GetBytes(_myUserName.Length).CopyTo(connectionPacket, 4);
+            Encoding.ASCII.GetBytes(_myUserName).CopyTo(connectionPacket, 8);
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverRouterIP), Client.SERVER_ROUTER_PORT);
 
@@ -223,7 +225,6 @@ namespace P2PClient
         }
 
         #endregion
-
 
         #region Public Methods
 
@@ -309,9 +310,11 @@ namespace P2PClient
 
         public void GetUsers()
         {
-            byte[] connectionPacket = new byte[4];
+            byte[] connectionPacket = new byte[4 + 4 + _myUserName.Length * 2];
 
             BitConverter.GetBytes(PacketDefinitions.GET_USERS_HEADER).CopyTo(connectionPacket, 0);
+            BitConverter.GetBytes(_myUserName.Length).CopyTo(connectionPacket, 4);
+            Encoding.ASCII.GetBytes(_myUserName).CopyTo(connectionPacket, 8);
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverRouterIP), Client.SERVER_ROUTER_PORT);
 
@@ -368,7 +371,6 @@ namespace P2PClient
         
 
         #endregion Methods
-
 
         #region Commands
         // A command is tied to a button to create the link between the button and a method

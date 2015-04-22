@@ -19,7 +19,7 @@ namespace TCPServerRouter
 
         public static void Main(string[] args)
         {
-            
+
             Console.WriteLine("Starting Client Listener...");
             ThreadPool.QueueUserWorkItem(ConnectionHandler.ListenForClient);
 

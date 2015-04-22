@@ -16,6 +16,10 @@ namespace TCPServerRouter
     public class ConnectionHandler
     {
 
+        #region Constants
+        private const int CLIENT_TIMEOUT = 5000;
+        #endregion Constants
+
         #region Message Headers
 
         private const int NEW_CONNECTION = 0;
@@ -28,6 +32,14 @@ namespace TCPServerRouter
         public static List<IPAddress> ServerRouters = new List<IPAddress>() {};
         public static DataContractSerializer Serializer = new DataContractSerializer(typeof(List<Dictionary<string, IPAddress>>));
         public static Dictionary<string, IPAddress> RoutingTable = new Dictionary<string, IPAddress>();
+
+        // I'm lazy. So instead of changing the Routing Table to save Clients as values, I'll just create this new one
+        // The client really isn't a client at the moment, because it only has one method and property.
+        // Sorry, this may get wordy, but to make things clear, here is how this will work.
+        // When a client requests the routing table, the client's lastConnectionTime is updated. 
+        // The next time anyone requests the routing table, the server router will loop through the table and remove any clients 
+        // that have a last connection time of greater than n seconds.
+        public static Dictionary<string, Client> ClientStateTable = new Dictionary<string, Client>();
 
         #endregion
 
@@ -52,6 +64,7 @@ namespace TCPServerRouter
 
                     int header = BitConverter.ToInt32(data, 0);
 
+
                     switch (header)
                     {
                         #region New Connections
@@ -60,6 +73,7 @@ namespace TCPServerRouter
                             string userName = Encoding.ASCII.GetString(data, 8, userNameLength);
 
                             Dictionary<string, IPAddress> totalRoutingTale = GetTotalRoutingTable();
+                            int fdas;
 
                             if (totalRoutingTale.ContainsKey(userName))
                             {
@@ -71,19 +85,45 @@ namespace TCPServerRouter
                             }
                             else
                             {
+                                lock (ClientStateTable)
+                                {
+                                    Client client = new Client();
+                                    ClientStateTable.Add(userName, client);
+                                }
                                 lock (RoutingTable)
                                 {
                                     RoutingTable.Add(userName, remoteEndPoint.Address);
                                 }
+                                if (userName == "Same")
+                                    fdas = 3;
+
                                 byte[] currentRoutingTableResponsePacket = GetRoutingTableBytes(totalRoutingTale);
 
                                 udpServer.Send(currentRoutingTableResponsePacket, currentRoutingTableResponsePacket.Length,
                                     remoteEndPoint);
+
                             }
                             break;
                         #endregion
 
                         case GET_USERS:
+                            
+                            userNameLength = BitConverter.ToInt32(data, 4);
+                            userName = Encoding.ASCII.GetString(data, 8, userNameLength);
+
+                            int i;
+                            if (userName == "same")
+                                i = 3;
+
+
+                            if (!String.IsNullOrEmpty(userName))
+                            {
+                                lock (ClientStateTable)
+                                {
+                                    ClientStateTable[userName].isAlive();
+                                }
+                            }
+                                
                             byte[] routingTableResponsePacket = GetRoutingTableBytes(GetTotalRoutingTable());
 
                             udpServer.Send(routingTableResponsePacket, routingTableResponsePacket.Length,
@@ -108,9 +148,11 @@ namespace TCPServerRouter
         {
             //Our routing table with all other server routers tables that we know about
             Dictionary<string, IPAddress> totalRoutingTable = new Dictionary<string, IPAddress>();
+
+            Dictionary<string, IPAddress> freshRoutingTable = GetFreshRoutingTable(RoutingTable);
             lock (RoutingTable)
             {
-                totalRoutingTable.Merge(RoutingTable);
+                totalRoutingTable.Merge(freshRoutingTable);
             }
             foreach (IPAddress ip in ServerRouters)
             {
@@ -123,7 +165,29 @@ namespace TCPServerRouter
                 totalRoutingTable.Merge(GetRoutingTableFromBytes(tableBytes));
             }
 
+
+
             return totalRoutingTable;
+        }
+
+        private static Dictionary<string, IPAddress> GetFreshRoutingTable(Dictionary<string, IPAddress> routingTable)
+        {
+            Dictionary<string, IPAddress> freshTable = new Dictionary<string, IPAddress>();
+            foreach (string key in routingTable.Keys)
+            {
+                Client client = ClientStateTable[key];
+                if (client.LastContactTime == null)
+                {
+                    client.isAlive();
+                }
+                double currentTime = (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+                if ((currentTime - CLIENT_TIMEOUT) < client.LastContactTime)
+                    freshTable.Add(key, routingTable[key]);
+            }
+
+            if(freshTable.Count > 0)
+                return freshTable;
+            return routingTable;
         }
 
         #endregion
@@ -149,6 +213,10 @@ namespace TCPServerRouter
             }
         }
         #endregion
+
+        #region Client Termination Thread
+
+        #endregion Client Termination Thread
 
         #region Serialization Helpers
         public static byte[] GetRoutingTableBytes(Dictionary<string, IPAddress> table)
