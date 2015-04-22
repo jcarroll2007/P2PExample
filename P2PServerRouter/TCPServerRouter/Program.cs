@@ -21,14 +21,15 @@ namespace TCPServerRouter
             Object[,] RoutingTable = new Object[ROUTING_TABLE_SIZE, 2]; // routing table
             int ind = 0; // indext in the routing table	
             //Accepting connections
-            Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            TcpListener serverSocket = new TcpListener(SOCKET_NUMBER);
+            serverSocket.Start();
 			
             // Creating threads with accepted connections
             while (true)
             {
                 try
                 {
-                    clientSocket = serverSocket.Accept();
+                    clientSocket = serverSocket.AcceptSocket();
                     
                     SThread t = new SThread(RoutingTable, clientSocket, ind); // creates a thread with a random port
                     ThreadPool.QueueUserWorkItem(t.Run);
@@ -48,7 +49,7 @@ namespace TCPServerRouter
 			
 	    //closing connections
             clientSocket.Close();
-            serverSocket.Close();
+            serverSocket.EndAcceptTcpClient(null);
         }
 
        

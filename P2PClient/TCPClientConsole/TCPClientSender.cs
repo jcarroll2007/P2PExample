@@ -20,7 +20,6 @@ namespace P2PClient
         private Decoder _decoder;
         private Socket _socket;
 
-
         public TCPClientSender()
         {
             RouterName = "";

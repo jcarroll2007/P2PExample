@@ -14,9 +14,9 @@ namespace TCPServerApplication
     {
         public static void Main(string[] args)
         {
-            const String ROUTER_NAME = "172.16.20.21"; // ServerRouter host name
+            const String ROUTER_NAME = "172.16.20.121"; // ServerRouter host name
             const int PORT_NUM = 5555; // port number
-            const String ADDRESS ="172.16.20.121"; // destination IP (Client)
+            const String ADDRESS ="172.16.20.21"; // destination IP (Client)
             const String IMAGE_LOCATION = "C:\\Users\\Cprice\\Desktop\\image.jpg";
             
             // Varibles for setting up connection and communication

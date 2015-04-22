@@ -55,7 +55,7 @@ namespace TCPServerRouter
 		        }
 		
 		        // loops through the routing table to find the destination
-		        for ( int i=0; i < RTable.Length; i++) 
+		        for ( int i=0; i < RTable.GetLength(0); i++) 
 		        {
 		            if (destination != ((String) RTable[i, 0])) continue;
 

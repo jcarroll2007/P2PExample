@@ -5,6 +5,8 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "P2PClient", "P2PClient\P2PClient.csproj", "{3449065B-E66D-4520-A46A-5B38574B5A93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCPClientConsole", "TCPClientConsole\TCPClientConsole.csproj", "{925B1AD5-7CBC-4BFF-9ADF-2EB31A62D485}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{3449065B-E66D-4520-A46A-5B38574B5A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3449065B-E66D-4520-A46A-5B38574B5A93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3449065B-E66D-4520-A46A-5B38574B5A93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{925B1AD5-7CBC-4BFF-9ADF-2EB31A62D485}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{925B1AD5-7CBC-4BFF-9ADF-2EB31A62D485}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{925B1AD5-7CBC-4BFF-9ADF-2EB31A62D485}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{925B1AD5-7CBC-4BFF-9ADF-2EB31A62D485}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
