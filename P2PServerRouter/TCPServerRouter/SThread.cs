@@ -11,22 +11,17 @@ namespace TCPServerRouter
 {
     public class SThread
     {
-        private Object [,] RTable; // routing table
-	    private String inputLine, outputLine, destination, addr; // communication strings
-	    private Socket outSocket; // socket for communicating with a destination
-        private Socket inSocket;
+        private String _inputLine, _outputLine, _destination, _address; // communication strings
+	    private Socket _outSocket; // socket for communicating with a destination
+        private Socket _inSocket;
 	    private int ind; // indext in the routing table
         private System.Text.Decoder decoder;
 
 	    // Constructor
-	    public SThread(Object [,] Table, Socket toClient, int index)
+	    public SThread(Socket inSock)
 	    {
-                RTable = Table;
-                RTable[index, 0] = addr; // IP addresses 
-                RTable[index, 1] = toClient; // sockets for communication
-	            inSocket = toClient;
-                ind = index;
-                decoder = System.Text.Encoding.UTF8.GetDecoder();
+	        _inSocket = inSock;
+            decoder = System.Text.Encoding.UTF8.GetDecoder();
 	    }
 	
 	    // Run method (will run for each machine that connects to the ServerRouter)
@@ -36,14 +31,14 @@ namespace TCPServerRouter
            {
 		        // Initial sends/receives
                 byte[] receiveBuffer = new byte[1024];
-                int receiveBtyeCount = inSocket.Receive(receiveBuffer);// initial read (the destination for writing)
+                int receiveBtyeCount = _inSocket.Receive(receiveBuffer);// initial read (the destination for writing)
                 char[] chars = new char[receiveBtyeCount];
                 int charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
-                destination = new String(chars);
+                _destination = new String(chars);
 
-		        Console.WriteLine("Forwarding to " + destination);
+		        Console.WriteLine("Forwarding to " + _destination);
 
-		        inSocket.Send(System.Text.Encoding.ASCII.GetBytes("Connected to the router.")); // confirmation of connection
+		        _inSocket.Send(System.Text.Encoding.ASCII.GetBytes("Connected to the router.")); // confirmation of connection
 		
 		        // waits 10 seconds to let the routing table fill with all machines' information
 		        try
@@ -53,81 +48,84 @@ namespace TCPServerRouter
 		        catch(ThreadInterruptedException ie){
                             Console.WriteLine("Thread interrupted");
 		        }
-		
-		        // loops through the routing table to find the destination
-		        for ( int i=0; i < RTable.GetLength(0); i++) 
-		        {
-		            if (destination != ((String) RTable[i, 0])) continue;
 
-		            outSocket = (Socket) RTable[i,1]; // gets the socket for communication from the table
-		            Console.WriteLine("Found destination: " + destination);
-		        }          
-		            
                 receiveBuffer = new byte[1024];
-                receiveBtyeCount = inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
+                receiveBtyeCount = _inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
                 chars = new char[receiveBtyeCount];
                 charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
-                inputLine = new String(chars);
+                _inputLine = new String(chars);
 
-                Console.WriteLine("Client/Server said: " + inputLine);
-                outputLine = inputLine;
+                Console.WriteLine("Client/Server said: " + _inputLine);
+                _outputLine = _inputLine;
 
-                if (outSocket != null)			
-                   outSocket.Send(System.Text.Encoding.ASCII.GetBytes(outputLine)); // writes to the destination
+               lock (Program.RoutingTable)
+               {
+                   // loops through the routing table to find the destination
+                   foreach (KeyValuePair<String, Socket> kvp in Program.RoutingTable)
+                   {
+                       if (_destination != (kvp.Key)) continue;
+
+                       _outSocket = kvp.Value; // gets the socket for communication from the table
+                       Console.WriteLine("Found destination: " + _destination);
+                   }
+               }
+
+               if (_outSocket != null)			
+                   _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
                         
                 receiveBuffer = new byte[1024];
-                receiveBtyeCount = inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
+                receiveBtyeCount = _inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
                 chars = new char[receiveBtyeCount];
                 charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
-                inputLine = new String(chars);
+                _inputLine = new String(chars);
                         
-                    if(inputLine.ToLower() == "image")
+                    if(_inputLine.ToLower() == "image")
                     {
-                        outputLine = inputLine; // passes the input from the machine to the output string for the destination
-                        Console.WriteLine("Client/Server said: " + inputLine);
-                        if (outSocket != null)
+                        _outputLine = _inputLine; // passes the input from the machine to the output string for the destination
+                        Console.WriteLine("Client/Server said: " + _inputLine);
+                        if (_outSocket != null)
                         {				
-                            outSocket.Send(System.Text.Encoding.ASCII.GetBytes(outputLine)); // writes to the destination
+                            _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
                         }
 
                         receiveBuffer = new byte[4];
-                        receiveBtyeCount = inSocket.Receive(receiveBuffer); //Receiving the size of the image
+                        receiveBtyeCount = _inSocket.Receive(receiveBuffer); //Receiving the size of the image
                         int size = BitConverter.ToInt32(receiveBuffer, 0);
                         Console.WriteLine("Client/Server said: Size of File: " + size);
-                        outSocket.Send(receiveBuffer);
+                        _outSocket.Send(receiveBuffer);
 
                         receiveBuffer = new byte[size];
-                        receiveBtyeCount = inSocket.Receive(receiveBuffer);// Receive the image
+                        receiveBtyeCount = _inSocket.Receive(receiveBuffer);// Receive the image
                         Console.WriteLine("Received Image from Client/Server");
-                        outSocket.Send(receiveBuffer);
+                        _outSocket.Send(receiveBuffer);
                         Console.WriteLine("Sent Image to Client/Server");
                         
                     }
                     else
                     {
-                        outputLine = inputLine; // passes the input from the machine to the output string for the destination
-                        Console.WriteLine("Client/Server said: " + inputLine);
-                        if (outSocket != null)
+                        _outputLine = _inputLine; // passes the input from the machine to the output string for the destination
+                        Console.WriteLine("Client/Server said: " + _inputLine);
+                        if (_outSocket != null)
                         {				
-                            outSocket.Send(System.Text.Encoding.ASCII.GetBytes(outputLine)); // writes to the destination
+                            _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
                         }
                         // Communication loop	
                         while (true) 
                         {
                             receiveBuffer = new byte[1024];
-                            receiveBtyeCount = inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
+                            receiveBtyeCount = _inSocket.Receive(receiveBuffer);// initial receive from router (verification of connection)
                             chars = new char[receiveBtyeCount];
                             charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
-                            inputLine = new String(chars);
+                            _inputLine = new String(chars);
 
-                            Console.WriteLine("Client/Server said: " + inputLine);
-                            if (inputLine == "Bye.") // exit statement
+                            Console.WriteLine("Client/Server said: " + _inputLine);
+                            if (_inputLine == "Bye.") // exit statement
                                                 break;
-                            outputLine = inputLine; // passes the input from the machine to the output string for the destination
+                            _outputLine = _inputLine; // passes the input from the machine to the output string for the destination
 
-                            if (outSocket != null)
+                            if (_outSocket != null)
                             {
-                                outSocket.Send(System.Text.Encoding.ASCII.GetBytes(outputLine)); // writes to the destination
+                                _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
                             }			
                         }// end while
                     }

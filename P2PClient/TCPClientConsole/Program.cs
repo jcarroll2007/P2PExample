@@ -14,10 +14,12 @@ namespace TCPClientConsole
         {
             TCPClientSender sender = new TCPClientSender();
             sender.RouterName = "172.16.20.121";
-            sender.ServerName = "172.16.20.121";
+            sender.ServerName = "172.16.20.21";
             sender.Port = 5555;
 
-            sender.SendFile(Directory.GetCurrentDirectory() + "\\Input\\TestFile.txt");
+            //sender.SendFile(Directory.GetCurrentDirectory() + "\\Input\\TestFile.txt");
+
+            sender.SendImage(Directory.GetCurrentDirectory() + "\\Input\\avatar.jpg");
         }
     }
 }

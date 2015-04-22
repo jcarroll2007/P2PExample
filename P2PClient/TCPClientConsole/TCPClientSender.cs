@@ -123,8 +123,17 @@ namespace P2PClient
         {
       	
             // Variables for setting up connection and communication
-            
-            String host = Dns.GetHostName();
+
+            String host = "";
+            IPHostEntry hostip = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in hostip.AddressList)
+            {
+                if (ip.AddressFamily.ToString() == "InterNetwork")
+                {
+                    host = ip.ToString();
+                }
+            }
+
             StreamWriter logFileWriter = new StreamWriter(LogPath);
             logFileWriter.Write("New Run for file: " + file + "\n");
 			
