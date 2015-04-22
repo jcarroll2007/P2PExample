@@ -121,12 +121,14 @@ namespace TCPServerApplication
                     fromClient = new String(chars);
 
                     Console.WriteLine("Client said: " + fromClient);
-                    if (fromClient == "Bye.") // exit statement
-                        break;
+                    
 
                     fromServer = fromClient.ToUpper(); // converting received message to upper case
                     Console.WriteLine("Server said: " + fromServer);
                     socket.Send(System.Text.Encoding.ASCII.GetBytes(fromServer)); // sending the converted message back to the Client via ServerRouter
+
+                    if (fromClient == "Bye.") // exit statement
+                        break;
                 }
             }
             
@@ -135,6 +137,11 @@ namespace TCPServerApplication
 			
 	    // closing connections
         socket.Close();
+
+        Console.WriteLine("Press any key to exit...");
+        Console.ReadKey();
         }
+
+        
     }
 }
