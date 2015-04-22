@@ -81,25 +81,36 @@ namespace TCPServerRouter
                         
                     if(_inputLine.ToLower() == "image")
                     {
-                        _outputLine = _inputLine; // passes the input from the machine to the output string for the destination
-                        Console.WriteLine("Client/Server said: " + _inputLine);
-                        if (_outSocket != null)
-                        {				
-                            _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
+                        try
+                        {
+
+
+                            _outputLine = _inputLine;
+                            // passes the input from the machine to the output string for the destination
+                            Console.WriteLine("Client/Server said: " + _inputLine);
+                            if (_outSocket != null)
+                            {
+                                _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine));
+                                // writes to the destination
+                            }
+
+                            receiveBuffer = new byte[4];
+                            receiveBtyeCount = _inSocket.Receive(receiveBuffer); //Receiving the size of the image
+                            int size = BitConverter.ToInt32(receiveBuffer, 0);
+                            Console.WriteLine("Client/Server said: Size of File: " + size);
+                            _outSocket.Send(receiveBuffer);
+
+                            receiveBuffer = new byte[size];
+                            receiveBtyeCount = _inSocket.Receive(receiveBuffer); // Receive the image
+                            Console.WriteLine("Received Image from Client/Server");
+                            _outSocket.Send(receiveBuffer);
+                            Console.WriteLine("Sent Image to Client/Server");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("File Transfer Complete");
                         }
 
-                        receiveBuffer = new byte[4];
-                        receiveBtyeCount = _inSocket.Receive(receiveBuffer); //Receiving the size of the image
-                        int size = BitConverter.ToInt32(receiveBuffer, 0);
-                        Console.WriteLine("Client/Server said: Size of File: " + size);
-                        _outSocket.Send(receiveBuffer);
-
-                        receiveBuffer = new byte[size];
-                        receiveBtyeCount = _inSocket.Receive(receiveBuffer);// Receive the image
-                        Console.WriteLine("Received Image from Client/Server");
-                        _outSocket.Send(receiveBuffer);
-                        Console.WriteLine("Sent Image to Client/Server");
-                        
                     }
                     else
                     {

@@ -101,8 +101,8 @@ namespace P2PClient
             //Send the actual image
             _socket.Send(imgBytes);
             //Wait for Response from server
-            fromServer = ReceiveString();
-            Console.WriteLine("Server: " + fromServer);
+            //fromServer = ReceiveString();
+            //Console.WriteLine("Server: " + fromServer);
 
             endFileSend =  DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
             totalFileSend = endFileSend - startFileSend;
