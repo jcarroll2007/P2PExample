@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -339,32 +340,52 @@ namespace P2PClient
 
             while (true)
             {
-                TcpClient client = c.ClientSocket;
-
-                NetworkStream stream = client.GetStream();
-
-                var message = new byte[4096];
-                int bytesRead = stream.Read(message, 0, 4096);
-
-                MessagePacket packet;
-                using (var ms = new System.IO.MemoryStream(message))
+                try
                 {
-                    var formatter = new BinaryFormatter();
-                    packet = (MessagePacket)formatter.Deserialize(ms);
-                }
+                    TcpClient client = c.ClientSocket;
 
-                //TODO: Can we just do c.Conversation += data?
-                lock (Clients)
-                {
-                    foreach (Client existingClient in Clients)
+                    NetworkStream stream = client.GetStream();
+
+                    var message = new byte[4096];
+                    int bytesRead = stream.Read(message, 0, 4096);
+
+                    MessagePacket packet;
+                    using (var ms = new System.IO.MemoryStream(message))
                     {
-                        if (existingClient.UserName == packet.UserNameFrom)
+                        var formatter = new BinaryFormatter();
+                        packet = (MessagePacket) formatter.Deserialize(ms);
+                    }
+
+                    //TODO: Can we just do c.Conversation += data?
+                    lock (Clients)
+                    {
+                        foreach (Client existingClient in Clients)
                         {
-                            existingClient.Conversation += packet.UserNameFrom + ": " +packet.Message + "\n";
-                            OnNewMessage(existingClient);
-                            break;
+                            if (existingClient.UserName == packet.UserNameFrom)
+                            {
+                                existingClient.Conversation += packet.UserNameFrom + ": " + packet.Message + "\n";
+                                OnNewMessage(existingClient);
+                                break;
+                            }
                         }
                     }
+                }
+                catch (IOException e)
+                {
+                    lock (Clients)
+                    {
+                        foreach (Client existingClient in Clients)
+                        {
+                            if (existingClient.UserName == c.UserName)
+                            {
+                                existingClient.Conversation += "-----Client Disconnected----- \n";
+                                OnNewMessage(existingClient);
+                                break;
+                            }
+                        }
+                    }
+
+                    break;
                 }
             }
         }

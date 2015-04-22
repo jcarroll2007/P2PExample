@@ -77,6 +77,9 @@ namespace P2PClient
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (sender == null || (sender as ListBox).SelectedItem == null)
+                return;
+
             //Add the tab if it doesnt exist
             AddTab((sender as ListBox).SelectedItem.ToString());
 
