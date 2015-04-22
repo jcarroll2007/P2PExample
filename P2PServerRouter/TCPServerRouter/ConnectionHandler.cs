@@ -73,6 +73,7 @@ namespace TCPServerRouter
                             string userName = Encoding.ASCII.GetString(data, 8, userNameLength);
 
                             Dictionary<string, IPAddress> totalRoutingTale = GetTotalRoutingTable();
+                            int fdas;
 
                             if (totalRoutingTale.ContainsKey(userName))
                             {
@@ -87,17 +88,20 @@ namespace TCPServerRouter
                                 lock (ClientStateTable)
                                 {
                                     Client client = new Client();
-                                    client.isAlive();
                                     ClientStateTable.Add(userName, client);
                                 }
                                 lock (RoutingTable)
                                 {
                                     RoutingTable.Add(userName, remoteEndPoint.Address);
                                 }
+                                if (userName == "Same")
+                                    fdas = 3;
+
                                 byte[] currentRoutingTableResponsePacket = GetRoutingTableBytes(totalRoutingTale);
 
                                 udpServer.Send(currentRoutingTableResponsePacket, currentRoutingTableResponsePacket.Length,
                                     remoteEndPoint);
+
                             }
                             break;
                         #endregion
@@ -106,8 +110,19 @@ namespace TCPServerRouter
                             
                             userNameLength = BitConverter.ToInt32(data, 4);
                             userName = Encoding.ASCII.GetString(data, 8, userNameLength);
+
+                            int i;
+                            if (userName == "same")
+                                i = 3;
+
+
                             if (!String.IsNullOrEmpty(userName))
-                                ClientStateTable[userName].isAlive();
+                            {
+                                lock (ClientStateTable)
+                                {
+                                    ClientStateTable[userName].isAlive();
+                                }
+                            }
                                 
                             byte[] routingTableResponsePacket = GetRoutingTableBytes(GetTotalRoutingTable());
 
@@ -160,13 +175,18 @@ namespace TCPServerRouter
             Dictionary<string, IPAddress> freshTable = new Dictionary<string, IPAddress>();
             foreach (string key in routingTable.Keys)
             {
-                double currentTime = (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
                 Client client = ClientStateTable[key];
+                if (client.LastContactTime == null)
+                {
+                    client.isAlive();
+                }
+                double currentTime = (DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
                 if ((currentTime - CLIENT_TIMEOUT) < client.LastContactTime)
                     freshTable.Add(key, routingTable[key]);
-
-                return freshTable;
             }
+
+            if(freshTable.Count > 0)
+                return freshTable;
             return routingTable;
         }
 
