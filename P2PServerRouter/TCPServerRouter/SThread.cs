@@ -118,15 +118,18 @@ namespace TCPServerRouter
                             charLen = decoder.GetChars(receiveBuffer, 0, receiveBtyeCount, chars, 0);
                             _inputLine = new String(chars);
 
-                            Console.WriteLine("Client/Server said: " + _inputLine);
-                            if (_inputLine == "Bye.") // exit statement
-                                                break;
+                            if (_inputLine == "BYE.") // exit statement
+                                break;
                             _outputLine = _inputLine; // passes the input from the machine to the output string for the destination
 
                             if (_outSocket != null)
                             {
                                 _outSocket.Send(System.Text.Encoding.ASCII.GetBytes(_outputLine)); // writes to the destination
-                            }			
+                            }
+
+                            Console.WriteLine("Client/Server said: " + _inputLine);
+                            if (_inputLine == "Bye.") // exit statement
+                                break;
                         }// end while
                     }
                 }// end try

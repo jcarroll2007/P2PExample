@@ -17,9 +17,12 @@ namespace TCPClientConsole
             sender.ServerName = "172.16.20.21";
             sender.Port = 5555;
 
-            //sender.SendFile(Directory.GetCurrentDirectory() + "\\Input\\TestFile.txt");
+            sender.SendFile(Directory.GetCurrentDirectory() + "\\Input\\TestFile.txt");
 
-            sender.SendImage(Directory.GetCurrentDirectory() + "\\Input\\avatar.jpg");
+            //sender.SendImage(Directory.GetCurrentDirectory() + "\\Input\\avatar.jpg");
+
+            Console.WriteLine("Press any key to exit...");
+            Console.ReadKey();
         }
     }
 }

@@ -236,6 +236,7 @@ namespace P2PClient
 
             logFileWriter.Close();
 
+            _socket.Send(Encoding.ASCII.GetBytes("Bye."));
             // closing connections
             _socket.Close();
         }
