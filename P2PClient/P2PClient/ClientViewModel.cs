@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -172,11 +173,20 @@ namespace P2PClient
             Encoding.ASCII.GetBytes(_myUserName).CopyTo(connectionPacket, 8);
 
             var remoteEndPoint = new IPEndPoint(IPAddress.Parse(_serverRouterIP), Client.SERVER_ROUTER_PORT);
+            byte[] responseBytes;
 
-            _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
-                                    remoteEndPoint);
+            using (StreamWriter file = new StreamWriter(Directory.GetCurrentDirectory() + "\\UpdateUsersTime.txt", true))
+            {
+                Stopwatch s = new Stopwatch();
 
-            byte[] responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
+                s.Start();
+                _serverRouterClient.Send(connectionPacket, connectionPacket.Length,
+                    remoteEndPoint);
+
+                responseBytes = _serverRouterClient.Receive(ref remoteEndPoint);
+                s.Stop();
+                file.WriteLine((double)s.ElapsedTicks / Stopwatch.Frequency * 1000000000.0 + ",");
+            }
 
             ObservableCollection<Client> incomingClients = Utility.GetClientsFromTable(Utility.GetRoutingTableFromBytes(responseBytes));
 
