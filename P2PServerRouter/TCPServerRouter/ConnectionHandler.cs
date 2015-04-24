@@ -25,7 +25,7 @@ namespace TCPServerRouter
 
         #region Public Data
 
-        public static List<IPAddress> ServerRouters = new List<IPAddress>() {};
+        public static List<IPAddress> ServerRouters = new List<IPAddress>() { IPAddress.Parse("10.99.3.52") };
         public static DataContractSerializer Serializer = new DataContractSerializer(typeof(List<Dictionary<string, IPAddress>>));
         public static Dictionary<string, IPAddress> RoutingTable = new Dictionary<string, IPAddress>();
 
