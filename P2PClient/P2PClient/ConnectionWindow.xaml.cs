@@ -38,7 +38,7 @@ namespace P2PClient
             InitializeComponent();
             _serverRouterClient = client;
             UsernameTextBox.Text = "Same";
-            RouterIPBox.Text = "192.168.1.31";
+            RouterIPBox.Text = "172.16.20.121";
             ClientPortBox.Text = "55555";
         }
 

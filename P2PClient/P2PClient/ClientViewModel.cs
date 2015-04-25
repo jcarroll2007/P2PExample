@@ -28,7 +28,7 @@ namespace P2PClient
     {
         #region constants
         //the port to listen for other clients on
-        private const int CLIENT_PORT = 9999;
+        public int ClientPort = 9999;
         //How often do we update our client table from the server router?
         private const int GET_UPDATED_USERS_TICK_RATE = 1000;
         #endregion
@@ -151,6 +151,7 @@ namespace P2PClient
             Clients = connectWindow.Clients;
             _myUserName = connectWindow.UserName;
             _serverRouterIP = connectWindow.ServerRouterIP;
+            ClientPort = int.Parse(connectWindow.ClientPort);
 
             _updatePeersTimer = new System.Timers.Timer();
             _updatePeersTimer.Interval = GET_UPDATED_USERS_TICK_RATE;
@@ -243,7 +244,7 @@ namespace P2PClient
         {
             IPAddress localAddr = IPAddress.Parse(_myIP);
 
-            TcpListener server = new TcpListener(localAddr, CLIENT_PORT);
+            TcpListener server = new TcpListener(localAddr, ClientPort);
             server.Start();
 
             while (true)
@@ -294,7 +295,7 @@ namespace P2PClient
 
             if (SelectedClient.ClientSocket == null)
             {
-                SelectedClient.ClientSocket = new TcpClient(SelectedClient.IPAddress, CLIENT_PORT);
+                SelectedClient.ClientSocket = new TcpClient(SelectedClient.IPAddress, ClientPort);
                 ThreadPool.QueueUserWorkItem(ListenToPeer, SelectedClient);
             }
 
@@ -312,7 +313,16 @@ namespace P2PClient
             }
 
             NetworkStream stream = SelectedClient.ClientSocket.GetStream();
-            stream.Write(packetBytes, 0, packetBytes.Length);
+
+            using (StreamWriter file = new StreamWriter(Directory.GetCurrentDirectory() + "\\UpdateSendTime.txt", true))
+            {
+                Stopwatch s = new Stopwatch();
+
+                s.Start();
+                stream.Write(packetBytes, 0, packetBytes.Length);
+                s.Stop();
+                file.WriteLine((double)s.ElapsedTicks / Stopwatch.Frequency * 1000000000.0 + ",");
+            }
 
             SelectedClient.Conversation += _myUserName + ": " + Message + "\n";
             OnNewMessage(SelectedClient);
